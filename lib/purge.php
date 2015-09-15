@@ -122,9 +122,43 @@ class FastlyPurge {
 
     if ($approved == 1 || $approved == 'trash') {
       $postId = $comment->comment_post_ID;
-      #$this->purge('/\\\?comments_popup=' . $postId);
+      // $this->purge('/\\\?comments_popup=' . $postId);
       $urls[] = get_bloginfo('wpurl') . '/?comments_popup=' . $postId;
-      
+      // $paginated_links = paginate_comments_links();
+      // error_log(print_r($paginated_links, true));
+      // starts
+      // include paginated comments pages to $url array for purge
+      // if pagination is on
+      if (get_option('page_comments') == 1) {
+        global $wp_rewrite;
+        $base = $wp_rewrite->pagination_base;
+        error_log($base);
+        // get the number of comments for the post
+        $comments_count = wp_count_comments($postId);
+        $approved_count = $comments_count->total_comments;
+        // get the number of comments per page
+        $comments_per_page = get_option('comments_per_page');
+        // get the number of pages
+        $pages = ceil($approved_count / $comments_per_page);
+        // permalink structure
+        $permalink_structure = get_option('permalink_structure');
+        if ($permalink_structure == "") {
+          // $permalink_structure is blank if it is default
+          $query_string = "&cpage=";
+        } else {
+          // find the $permalink_structure and figure out how comment pages are formatted.
+        }
+        // loop for count of $pages to add urls to $url
+        for ($i=2;$i<=$pages;$i++) {
+          // create URL for purge
+          if (get_permalink($postId)) {
+            // $page_comments = get_permalink($postId) . "/comment-page-" . $i;
+            $page_comments = get_permalink($postId) . $query_string . $i;
+            $urls[] = $page_comments;
+          }
+        }
+      }
+      // end
       // TODO Need Regex Support
       /*
       if (get_site_option($this->wpv_update_commentnavi_optname) == 1) {
